@@ -13,6 +13,14 @@
 <body>
 <div id="app">
     <add-task @add-task="addTask"></add-task>
+    <div id="task2">
+        <column v-for="(column, index) in columns" :key="index"
+                :column="column"
+                @done-subtask="doneSubtask"
+                @save="saveData"
+                :class="{disabled:column.disabled}"
+        ></column>
+    </div>
 </div>
 </body>
 </html>

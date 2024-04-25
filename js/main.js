@@ -31,6 +31,65 @@ Vue.component('add-task', {
     },
 })
 
+Vue.component('column', {
+    props: {
+        column: {
+            title: '',
+            tasks: []
+        }
+    },
+    template: `
+    <div class="column">
+        <h2>{{column.title}}</h2>
+        <div class="task">
+        <task v-for="(task, index) in column.tasks"
+        :key="index"
+        :task="task"
+        @done-subtask="doneSubtask"
+        ></task>
+        </div>
+    </div>
+    `,
+    updated() {
+        this.$emit('save')
+    },
+    methods: {
+        doneSubtask(subtask) {
+            this.$emit('done-subtask', subtask)
+        },
+        taskHalfFilled(task) {
+            this.$emit('task-half-filled', {task: task, column: this.column})
+        },
+        taskFilledCompletely(task) {
+            this.$emit('task-filled-completely', {task: task, column: this.column})
+        }
+    }
+})
+
+Vue.component('task', {
+    props: {
+        task: {
+            title: '',
+            subtasks: []
+        }
+    },
+    template: `
+    <div>
+        <h2>{{task.title}}</h2>
+        <li v-for="(subtask, index) in task.subtasks" class="subtask"
+        :key="index"
+        :class="{done:subtask.done}" 
+        @click="doneSubtask(subtask)"> {{subtask.title}}</li>
+    </div>
+    `,
+    methods: {
+        doneSubtask(subtask) {
+            this.$emit('done-subtask', subtask)
+        }
+    },
+})
+
+
 let app = new Vue({
     el: '#app',
     data: {
@@ -67,9 +126,16 @@ let app = new Vue({
         this.columns = JSON.parse(localStorage.getItem('columns'));
     },
     methods: {
+        saveData() {
+            localStorage.setItem('columns', JSON.stringify(this.columns))
+        },
         addTask(task) {
             if ((this.columns[0].tasks.length > 2) || this.columns[0].disabled) return
             this.columns[0].tasks.push(task)
+        },
+        doneSubtask(subtask) {
+            subtask.done = true
+            this.saveData()
         },
     },
 })
