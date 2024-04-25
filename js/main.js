@@ -25,7 +25,8 @@ Vue.component('add-task', {
                     {title: "Task 1", done: false},
                     {title: "Task 2", done: false},
                     {title: "Task 3", done: false},
-                ]
+                ],
+                date: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
             }
         }
     },
@@ -35,7 +36,8 @@ Vue.component('column', {
     props: {
         column: {
             title: '',
-            tasks: []
+            tasks: [],
+            date: ''
         }
     },
     template: `
@@ -72,7 +74,7 @@ Vue.component('task', {
     props: {
         task: {
             title: '',
-            subtasks: []
+            subtasks: [],
         }
     },
     template: `
@@ -82,6 +84,7 @@ Vue.component('task', {
         :key="index"
         :class="{done:subtask.done}" 
         @click="doneSubtask(subtask)"> {{subtask.title}}</li>
+        <p>Дата изменения: {{ task.date }}</p>
     </div>
     `,
     updated() {
@@ -125,7 +128,7 @@ let app = new Vue({
             {
                 index: 2,
                 title: "Complete",
-                tasks: []
+                tasks: [],
             }
         ]
     },
@@ -159,6 +162,7 @@ let app = new Vue({
             this.column1Unlock()
         },
         moveTask(data, column) {
+            data.task.date = new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString()
             column.tasks.push(data.column.tasks.splice(data.column.tasks.indexOf(data.task), 1)[0])
         },
         column1Unlock() {
