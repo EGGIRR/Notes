@@ -57,12 +57,6 @@ Vue.component('column', {
         doneSubtask(subtask) {
             this.$emit('done-subtask', subtask)
         },
-        taskHalfFilled(task) {
-            this.$emit('task-half-filled', {task: task, column: this.column})
-        },
-        taskFilledCompletely(task) {
-            this.$emit('task-filled-completely', {task: task, column: this.column})
-        }
     }
 })
 
