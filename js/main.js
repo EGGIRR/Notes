@@ -9,8 +9,12 @@ Vue.component('add-task', {
     </p>
         <h2>Create task</h2>
         <div>
-        <label>Task title: <input placeholder="New task" v-model="task.title"></label>
+        <label>Task title:
+         <input placeholder="New task" v-model="task.title">
+         </label>
         <h3>Tasks</h3>
+        <button @click="addSubtask">Add more tasks</button>
+         <button @click="delSubtask">Less tasks</button>
         <div v-for="(subtask, index) in task.subtasks"><input placeholder="Task" v-model="subtask.title" :key="index">
         </div>
         <button @click="addTask">add</button>
@@ -18,6 +22,16 @@ Vue.component('add-task', {
     </div>
     `,
     methods: {
+        addSubtask() {
+            if (this.task.subtasks.length < 5){
+            this.task.subtasks.push({title: "Task " + (this.task.subtasks.length + 1), done: false})
+            }
+        },
+        delSubtask(index) {
+            if(this.task.subtasks.length > 3){
+            this.task.subtasks.pop()
+            }
+        },
         addTask() {
             this.errors = [];
             if (!this.task.title || !this.task.subtasks.every(subtask => subtask.title)) {
@@ -32,6 +46,7 @@ Vue.component('add-task', {
                 date: this.task.date
             };
             this.$emit('add-task', productReview);
+            location.reload();
         }
     },
     data() {
@@ -120,10 +135,22 @@ Vue.component('task', {
     },
     computed: {
         filled() {
-            return (this.task.subtasks.filter(subtask => subtask.done).length) / this.task.subtasks.length === 1
+            let arr = []
+            this.task.subtasks.forEach(task => {
+                if (task.done === true){
+                    arr.push(task.done)
+                }
+            })
+            return (arr.length) / this.task.subtasks.length === 1
         },
         half() {
-            return Math.ceil(this.task.subtasks.length / 2) === this.task.subtasks.filter(subtask => subtask.done).length
+            let arr = []
+            this.task.subtasks.forEach(task => {
+                if (task.done === true){
+                    arr.push(task.done)
+                }
+            })
+            return Math.ceil(this.task.subtasks.length / 2) === arr.length
         },
     }
 })
@@ -155,7 +182,7 @@ let app = new Vue({
         this.columns = JSON.parse(localStorage.getItem('columns'));
     },
     methods: {
-        saveData() {
+        save() {
             localStorage.setItem('columns', JSON.stringify(this.columns))
         },
         addTask(task) {
@@ -164,7 +191,7 @@ let app = new Vue({
         },
         doneSubtask(subtask) {
             subtask.done = true
-            this.saveData()
+            this.save()
         },
         taskHalf(data) {
             if (data.column.index !== 0 || data.column.disabled) return
@@ -173,24 +200,23 @@ let app = new Vue({
                 alert("Нельзя добавить ещё!")
                 return;
             }
-            this.moveTask(data, this.columns[1])
+            this.move(data, this.columns[1])
         },
         taskFilled(data) {
-            this.moveTask(data, this.columns[2])
-            this.column1Unlock()
+            this.move(data, this.columns[2])
+            this.enabled()
         },
-        moveTask(data, column) {
+        move(data, column) {
             data.task.date = new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString()
             column.tasks.push(data.column.tasks.splice(data.column.tasks.indexOf(data.task), 1)[0])
         },
-        column1Unlock() {
+        enabled() {
             this.columns[0].disabled = false
             this.columns[0].tasks.forEach(task => {
                 if (Math.ceil(task.subtasks.length / 2) === task.subtasks.filter(subtask => subtask.done).length) {
-                    this.moveTask({task: task, column: this.columns[0]}, this.columns[1])
+                    this.move({task: task, column: this.columns[0]}, this.columns[1])
                 }
             })
-
         }
     },
 })

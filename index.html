@@ -16,11 +16,11 @@
     <div id="task2">
         <column v-for="(column, index) in columns" :key="index"
                 :column="column"
+                :class="{disabled:column.disabled}"
                 @done-subtask="doneSubtask"
                 @task-half-filled="taskHalf"
                 @task-filled-completely="taskFilled"
-                @save="saveData"
-                :class="{disabled:column.disabled}"
+                @save="save"
         ></column>
     </div>
 </div>
