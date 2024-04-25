@@ -19,29 +19,20 @@ Vue.component('add-task', {
     `,
     methods: {
         addTask() {
-            if (this.task.title && this.task.subtasks && this.task.date) {
-                let productReview = {
-                    title: this.task.title,
-                    subtasks: this.task.subtasks,
-                    date: this.task.date
-                };
-                this.$emit('add-task', productReview);
-
-            } else {
-                let arr = [];
+            this.errors = [];
+            if (!this.task.title || !this.task.subtasks.every(subtask => subtask.title)) {
                 if (!this.task.title) this.errors.push("Title required.");
-                this.task.subtasks.forEach(task => {
-                    if (task.title !== '') {
-                        arr.push(task.title)
-                    }
-
-                })
-                console.log(arr.length)
-                this.task.subtasks.forEach(task => {
-                    if (arr.length < 3) this.errors.push("Task required.");
-                })
+                if (!this.task.subtasks.every(subtask => subtask.title)) this.errors.push("All subtasks must have a title.");
+                return;
             }
-        },
+
+            let productReview = {
+                title: this.task.title,
+                subtasks: this.task.subtasks,
+                date: this.task.date
+            };
+            this.$emit('add-task', productReview);
+        }
     },
     data() {
         return {
