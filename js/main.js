@@ -46,6 +46,8 @@ Vue.component('column', {
         :key="index"
         :task="task"
         @done-subtask="doneSubtask"
+        @task-half-filled="taskHalfFilled"
+        @task-filled-completely="taskFilledCompletely"
         ></task>
         </div>
     </div>
@@ -82,13 +84,30 @@ Vue.component('task', {
         @click="doneSubtask(subtask)"> {{subtask.title}}</li>
     </div>
     `,
+    updated() {
+        if (this.halfFilled) {
+            this.$emit('task-half-filled', this.task)
+        }
+        if (this.filledCompletely) {
+            this.$emit('task-filled-completely', this.task)
+        }
+    },
     methods: {
         doneSubtask(subtask) {
             this.$emit('done-subtask', subtask)
         }
     },
+    computed: {
+        filledCompletely() {
+            const countSubtaskDone = this.task.subtasks.filter(subtask => subtask.done).length
+            return countSubtaskDone / this.task.subtasks.length === 1
+        },
+        halfFilled() {
+            const countSubtaskDone = this.task.subtasks.filter(subtask => subtask.done).length
+            return Math.ceil(this.task.subtasks.length / 2) === countSubtaskDone
+        },
+    }
 })
-
 
 let app = new Vue({
     el: '#app',
@@ -137,5 +156,32 @@ let app = new Vue({
             subtask.done = true
             this.saveData()
         },
+        taskHalfFilled(data) {
+            if (data.column.index !== 0 || data.column.disabled) return
+            if (this.columns[1].tasks.length > 4) {
+                this.columns[0].disabled = true
+                return;
+            }
+            this.moveTask(data, this.columns[1])
+        },
+        taskFilledCompletely(data) {
+            this.moveTask(data, this.columns[2])
+            this.column1Unlock()
+        },
+        moveTask(data, column) {
+            const task = data.column.tasks.splice(data.column.tasks.indexOf(data.task), 1)[0]
+            column.tasks.push(task)
+        },
+        column1Unlock() {
+            this.columns[0].disabled = false
+
+            this.columns[0].tasks.forEach(task => {
+                const countSubtaskDone = task.subtasks.filter(subtask => subtask.done).length
+                if (Math.ceil(task.subtasks.length / 2) === countSubtaskDone) {
+                    this.moveTask({task: task, column: this.columns[0]}, this.columns[1])
+                }
+            })
+
+        }
     },
 })
