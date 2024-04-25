@@ -1,6 +1,12 @@
 Vue.component('add-task', {
     template: `
     <div>
+    <p v-if="errors.length">
+        <b>Please correct the following error(s):</b>
+        <ul>
+            <li v-for="error in errors">{{ error }}</li>
+        </ul>
+    </p>
         <h2>Create task</h2>
         <div>
         <label>Task title: <input placeholder="New task" v-model="task.title"></label>
@@ -13,12 +19,33 @@ Vue.component('add-task', {
     `,
     methods: {
         addTask() {
+            if (this.task.title && this.task.subtasks && this.task.date) {
+                let productReview = {
+                    title: this.task.title,
+                    subtasks: this.task.subtasks,
+                    date: this.task.date
+                };
+                this.$emit('add-task', productReview);
 
-            this.$emit('add-task', JSON.parse(JSON.stringify(this.task)));
-        }
+            } else {
+                let arr = [];
+                if (!this.task.title) this.errors.push("Title required.");
+                this.task.subtasks.forEach(task => {
+                    if (task.title !== '') {
+                        arr.push(task.title)
+                    }
+
+                })
+                console.log(arr.length)
+                this.task.subtasks.forEach(task => {
+                    if (arr.length < 3) this.errors.push("Task required.");
+                })
+            }
+        },
     },
     data() {
         return {
+            errors: [],
             task: {
                 title: 'New task',
                 subtasks: [
