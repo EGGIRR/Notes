@@ -46,8 +46,8 @@ Vue.component('column', {
         :key="index"
         :task="task"
         @done-subtask="doneSubtask"
-        @task-half-filled="taskHalfFilled"
-        @task-filled-completely="taskFilledCompletely"
+        @task-half-filled="taskHalf"
+        @task-filled-completely="taskFilled"
         ></task>
         </div>
     </div>
@@ -59,10 +59,10 @@ Vue.component('column', {
         doneSubtask(subtask) {
             this.$emit('done-subtask', subtask)
         },
-        taskHalfFilled(task) {
+        taskHalf(task) {
             this.$emit('task-half-filled', {task: task, column: this.column})
         },
-        taskFilledCompletely(task) {
+        taskFilled(task) {
             this.$emit('task-filled-completely', {task: task, column: this.column})
         }
     }
@@ -85,10 +85,10 @@ Vue.component('task', {
     </div>
     `,
     updated() {
-        if (this.halfFilled) {
+        if (this.half) {
             this.$emit('task-half-filled', this.task)
         }
-        if (this.filledCompletely) {
+        if (this.filled) {
             this.$emit('task-filled-completely', this.task)
         }
     },
@@ -98,13 +98,11 @@ Vue.component('task', {
         }
     },
     computed: {
-        filledCompletely() {
-            const countSubtaskDone = this.task.subtasks.filter(subtask => subtask.done).length
-            return countSubtaskDone / this.task.subtasks.length === 1
+        filled() {
+            return (this.task.subtasks.filter(subtask => subtask.done).length) / this.task.subtasks.length === 1
         },
-        halfFilled() {
-            const countSubtaskDone = this.task.subtasks.filter(subtask => subtask.done).length
-            return Math.ceil(this.task.subtasks.length / 2) === countSubtaskDone
+        half() {
+            return Math.ceil(this.task.subtasks.length / 2) === this.task.subtasks.filter(subtask => subtask.done).length
         },
     }
 })
@@ -117,16 +115,7 @@ let app = new Vue({
                 disabled: false,
                 index: 0,
                 title: "New tasks",
-                tasks: [
-                    {
-                        title: "Example task",
-                        subtasks: [
-                            {title: "Do it", done: false},
-                            {title: "Do that", done: false},
-                            {title: "Do what", done: false},
-                        ]
-                    },
-                ]
+                tasks: []
             },
             {
                 index: 1,
@@ -156,28 +145,26 @@ let app = new Vue({
             subtask.done = true
             this.saveData()
         },
-        taskHalfFilled(data) {
+        taskHalf(data) {
             if (data.column.index !== 0 || data.column.disabled) return
             if (this.columns[1].tasks.length > 4) {
                 this.columns[0].disabled = true
+                alert("Нельзя добавить ещё!")
                 return;
             }
             this.moveTask(data, this.columns[1])
         },
-        taskFilledCompletely(data) {
+        taskFilled(data) {
             this.moveTask(data, this.columns[2])
             this.column1Unlock()
         },
         moveTask(data, column) {
-            const task = data.column.tasks.splice(data.column.tasks.indexOf(data.task), 1)[0]
-            column.tasks.push(task)
+            column.tasks.push(data.column.tasks.splice(data.column.tasks.indexOf(data.task), 1)[0])
         },
         column1Unlock() {
             this.columns[0].disabled = false
-
             this.columns[0].tasks.forEach(task => {
-                const countSubtaskDone = task.subtasks.filter(subtask => subtask.done).length
-                if (Math.ceil(task.subtasks.length / 2) === countSubtaskDone) {
+                if (Math.ceil(task.subtasks.length / 2) === task.subtasks.filter(subtask => subtask.done).length) {
                     this.moveTask({task: task, column: this.columns[0]}, this.columns[1])
                 }
             })

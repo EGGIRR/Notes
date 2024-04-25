@@ -17,8 +17,8 @@
         <column v-for="(column, index) in columns" :key="index"
                 :column="column"
                 @done-subtask="doneSubtask"
-                @task-half-filled="taskHalfFilled"
-                @task-filled-completely="taskFilledCompletely"
+                @task-half-filled="taskHalf"
+                @task-filled-completely="taskFilled"
                 @save="saveData"
                 :class="{disabled:column.disabled}"
         ></column>

@@ -2,10 +2,6 @@
     text-decoration: line-through;
 }
 
-.disabled{
-    pointer-events: none;
-    background-color: darkgrey;
-}
 table{
     border: 2px solid black;
 }
@@ -28,4 +24,9 @@ table{
     display: flex;
     flex-direction: row;
     gap: 200px;
+}
+
+.disabled{
+    pointer-events: none;
+    background-color: darkgrey;
 }
