@@ -149,7 +149,7 @@ Vue.component('task', {
     methods: {
         doneSubtask(subtask) {
             this.$emit('done-subtask', subtask)
-        }
+        },
     },
     computed: {
         filled() {
