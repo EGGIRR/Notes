@@ -92,6 +92,7 @@ Vue.component('column', {
         :task="task"
         @done-subtask="doneSubtask"
         @task-half-filled="taskHalf"
+        @task-half-filled2="taskHalf2"
         @task-filled-completely="taskFilled"
         @update-task="updateTask">
     </task>
@@ -107,6 +108,9 @@ Vue.component('column', {
         },
         taskHalf(task) {
             this.$emit('task-half-filled', {task: task, column: this.column})
+        },
+        taskHalf2(task) {
+            this.$emit('task-half-filled2', {task: task, column: this.column})
         },
         taskFilled(task) {
             this.$emit('task-filled-completely', {task: task, column: this.column})
@@ -168,16 +172,18 @@ Vue.component('task', {
                 this.task.subtasks.push({ title: this.newSubtaskTitle.trim(), done: false });
                 this.newSubtaskTitle = '';
                 this.$emit('update-task', this.task);
+                this.$emit('task-half-filled2', this.task);
             }
         },
         deleteSubtask(index) {
-            if(this.task.subtasks.length > 1){
-            if (!this.isLastColumn) {
-                this.task.subtasks.splice(index, 1);
-                this.$emit('update-task', this.task);
+            if (this.task.subtasks.length > 1) {
+                if (!this.isLastColumn) {
+                    this.task.subtasks.splice(index, 1);
+                    this.$emit('update-task', this.task);
+                    this.$emit('task-half-filled2', this.task);
+                }
             }
-            }
-        },
+        }
     },
     computed: {
         isLastColumn() {
@@ -231,6 +237,13 @@ let app = new Vue({
         this.columns = JSON.parse(localStorage.getItem('columns'));
     },
     methods: {
+        taskHalf2(data) {
+            if (data.column.index === 1) {
+                if (data.task.subtasks.filter(subtask => subtask.done).length / data.task.subtasks.length < 0.5) {
+                    this.move(data, this.columns[0]);
+                }
+            }
+        },
         save() {
             localStorage.setItem('columns', JSON.stringify(this.columns))
         },
