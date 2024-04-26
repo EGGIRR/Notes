@@ -92,7 +92,8 @@ Vue.component('column', {
         :task="task"
         @done-subtask="doneSubtask"
         @task-half-filled="taskHalf"
-        @task-filled-completely="taskFilled">
+        @task-filled-completely="taskFilled"
+        @update-task="updateTask">
     </task>
         </div>
     </div>
@@ -109,6 +110,9 @@ Vue.component('column', {
         },
         taskFilled(task) {
             this.$emit('task-filled-completely', {task: task, column: this.column})
+        },
+        updateTask(task) {
+            this.$emit('save');
         }
     },
     computed: {
@@ -126,17 +130,26 @@ Vue.component('task', {
             importance: ''
         }
     },
+    data() {
+        return {
+            newSubtaskTitle: ''
+        }
+    },
     template: `
     <div>
-        <h2>{{task.title}}</h2>
-        <li v-for="(subtask, index) in task.subtasks" class="subtask"
-        :key="index"
-        :class="{done:subtask.done}" 
-        @click="doneSubtask(subtask)"> {{subtask.title}}</li>
-        <p>Дата изменения: {{ task.date }}</p>
-        <p v-if="task.importance === 1">Важно</p>
-        <p v-else>Обычно</p>
-    </div>
+  <h2>{{ task.title }}</h2>
+  <li v-for="(subtask, index) in task.subtasks" class="subtask" :key="index" :class="{ done: subtask.done }" @click="doneSubtask(subtask)">
+    {{ subtask.title }}
+    <button v-if="!isLastColumn" @click.stop="deleteSubtask(index)">Удалить</button>
+  </li>
+  <div v-if="!isLastColumn">
+    <input v-model="newSubtaskTitle" placeholder="Новая подзадача" @keyup.enter="addSubtask" />
+    <button @click="addSubtask">Добавить</button>
+  </div>
+  <p>Дата изменения: {{ task.date }}</p>
+  <p v-if="task.importance === 1">Важно</p>
+  <p v-else>Обычно</p>
+</div>
     `,
     updated() {
         if (this.half) {
@@ -150,8 +163,26 @@ Vue.component('task', {
         doneSubtask(subtask) {
             this.$emit('done-subtask', subtask)
         },
+        addSubtask() {
+            if (!this.isLastColumn && this.newSubtaskTitle.trim() !== '') {
+                this.task.subtasks.push({ title: this.newSubtaskTitle.trim(), done: false });
+                this.newSubtaskTitle = '';
+                this.$emit('update-task', this.task);
+            }
+        },
+        deleteSubtask(index) {
+            if(this.task.subtasks.length > 1){
+            if (!this.isLastColumn) {
+                this.task.subtasks.splice(index, 1);
+                this.$emit('update-task', this.task);
+            }
+            }
+        },
     },
     computed: {
+        isLastColumn() {
+            return this.$parent.column.index === 2;
+        },
         filled() {
             let arr = []
             this.task.subtasks.forEach(task => {
