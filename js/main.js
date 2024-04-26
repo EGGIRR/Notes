@@ -17,6 +17,15 @@ Vue.component('add-task', {
          <button @click="delSubtask">Less tasks</button>
         <div v-for="(subtask, index) in task.subtasks"><input placeholder="Task" v-model="subtask.title" :key="index">
         </div>
+        <div>
+    <input type="radio" id="yes" name="drone" v-model="task.importance" value="1"/>
+    <label for="yes">Important</label>
+  </div>
+
+  <div>
+    <input type="radio" id="no" name="drone" v-model="task.importance" value="0" />
+    <label for="no">Common</label>
+  </div>
         <button @click="addTask">add</button>
         </div>
     </div>
@@ -42,7 +51,8 @@ Vue.component('add-task', {
             let productReview = {
                 title: this.task.title,
                 subtasks: this.task.subtasks.filter(subtask => subtask.title),
-                date: this.task.date
+                date: this.task.date,
+                importance: this.task.importance
             };
             this.$emit('add-task', productReview);
             location.reload();
@@ -58,6 +68,7 @@ Vue.component('add-task', {
                     {title: "Task 2", done: false},
                     {title: "Task 3", done: false},
                 ],
+                importance: 1,
                 date: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
             }
         }
@@ -76,13 +87,13 @@ Vue.component('column', {
     <div class="column">
         <h2>{{column.title}}</h2>
         <div class="task">
-        <task v-for="(task, index) in column.tasks"
+        <task v-for="(task, index) in sortedTasks"
         :key="index"
         :task="task"
         @done-subtask="doneSubtask"
         @task-half-filled="taskHalf"
-        @task-filled-completely="taskFilled"
-        ></task>
+        @task-filled-completely="taskFilled">
+    </task>
         </div>
     </div>
     `,
@@ -99,6 +110,11 @@ Vue.component('column', {
         taskFilled(task) {
             this.$emit('task-filled-completely', {task: task, column: this.column})
         }
+    },
+    computed: {
+        sortedTasks() {
+            return this.column.tasks.sort((a, b) => b.importance - a.importance);
+        }
     }
 })
 
@@ -107,6 +123,7 @@ Vue.component('task', {
         task: {
             title: '',
             subtasks: [],
+            importance: ''
         }
     },
     template: `
@@ -117,6 +134,8 @@ Vue.component('task', {
         :class="{done:subtask.done}" 
         @click="doneSubtask(subtask)"> {{subtask.title}}</li>
         <p>Дата изменения: {{ task.date }}</p>
+        <p v-if="task.importance === 1">Важно</p>
+        <p v-else>Обычно</p>
     </div>
     `,
     updated() {
