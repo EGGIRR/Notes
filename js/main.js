@@ -34,15 +34,14 @@ Vue.component('add-task', {
         },
         addTask() {
             this.errors = [];
-            if (!this.task.title || !this.task.subtasks.every(subtask => subtask.title)) {
+            if (!this.task.title || this.task.subtasks.filter(subtask => subtask.title).length < 3) {
                 if (!this.task.title) this.errors.push("Title required.");
-                if (!this.task.subtasks.every(subtask => subtask.title)) this.errors.push("All subtasks must have a title.");
+                if (this.task.subtasks.filter(subtask => subtask.title).length < 3) this.errors.push("You must have at least 3 filled titles.");
                 return;
             }
-
             let productReview = {
                 title: this.task.title,
-                subtasks: this.task.subtasks,
+                subtasks: this.task.subtasks.filter(subtask => subtask.title),
                 date: this.task.date
             };
             this.$emit('add-task', productReview);
@@ -211,12 +210,13 @@ let app = new Vue({
             column.tasks.push(data.column.tasks.splice(data.column.tasks.indexOf(data.task), 1)[0])
         },
         enabled() {
-            this.columns[0].disabled = false
+            this.columns[0].disabled = false;
             this.columns[0].tasks.forEach(task => {
+                task.subtasks = task.subtasks.filter(subtask => subtask.title);
                 if (Math.ceil(task.subtasks.length / 2) === task.subtasks.filter(subtask => subtask.done).length) {
-                    this.move({task: task, column: this.columns[0]}, this.columns[1])
+                    this.move({task: task, column: this.columns[0]}, this.columns[1]);
                 }
-            })
+            });
         }
     },
 })
